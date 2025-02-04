@@ -11,11 +11,12 @@ const PELOTON_API_BASE = "https://api.onepeloton.com";
 // Endpoint to authenticate user and retrieve token
 app.post("/api/auth", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username_or_email, password } = req.body;
     const response = await axios.post(`${PELOTON_API_BASE}/auth/login`, {
-      username,
+      username_or_email,
       password,
     });
+
     res.json(response.data);
   } catch (error) {
     res

@@ -1,15 +1,32 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const session = require("express-session"); // Import express-session
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-let g_authData, g_authenticated_config;
 
-const PELOTON_API_BASE = "https://api.onepeloton.com";
+// Configure session middleware
+app.use(
+  session({
+    secret:
+      process.env.SESSION_SECRET || "37bc1d12-ccdb-4eeb-8086-1a4fd42bced5", //Session Key
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === "production" }, // Set secure cookie in production
+  })
+);
 
-// Endpoint to authenticate user and retrieve token
+const PELOTON_API_BASE =
+  process.env.PELOTON_API_BASE || "https://api.onepeloton.com"; // Use env variable
+
+// Helper function to extract cookie (same as before)
+function extractCookie(setCookieHeaders) {
+  if (!setCookieHeaders) return "";
+  return setCookieHeaders.map((header) => header.split(";")[0]).join(";");
+}
+
 app.post("/api/auth", async (req, res) => {
   try {
     const { username_or_email, password } = req.body;
@@ -17,46 +34,63 @@ app.post("/api/auth", async (req, res) => {
       username_or_email,
       password,
     });
-    let cookie = response.headers["set-cookie"];
-    //console.log(cookie);
-    for (let i = 0; i < cookie.length; i++) {
-      cookie[i] = cookie[i].split(";")[0];
-    }
-    g_authenticated_config = { headers: { Cookie: cookie.join(";") } };
-    g_authData = response.data;
-    res.json(g_authData);
-  } catch (error) {
-    res
-      .status(400)
-      .json({ error: error.response?.data || "Authentication failed" });
-  }
-});
 
-// Endpoint to fetch user workouts
-app.get("/api/workouts", async (req, res) => {
-  try {
-    //const apiWorkouts = `${PELOTON_API_BASE}/api/user/${req.query.userId}/workouts`;
-    const url = `${PELOTON_API_BASE}/api/user/${g_authData.user_id}/workouts`;
-    const response = await axios.get(url, g_authenticated_config);
+    const cookie = extractCookie(response.headers["set-cookie"]);
+
+    // Store auth data in the session instead of globals!
+    req.session.authenticatedConfig = { headers: { Cookie: cookie } };
+    req.session.authData = response.data;
+
     res.json(response.data);
   } catch (error) {
-    res
-      .status(400)
-      .json({ error: error.response?.data || "Failed to fetch workouts" });
+    const errorMessage =
+      error.response?.data?.message || error.message || "Authentication failed";
+    console.error("Authentication error:", errorMessage);
+    res.status(error.response?.status || 400).json({ error: errorMessage });
   }
 });
 
-// Endpoint to fetch workout metrics
+app.get("/api/workouts", async (req, res) => {
+  try {
+    // Access auth data from the session
+    const { authData, authenticatedConfig } = req.session;
+
+    if (!authData || !authenticatedConfig) {
+      return res.status(401).json({ error: "Unauthorized" }); // Handle unauthorized requests
+    }
+
+    const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts`;
+    const response = await axios.get(url, authenticatedConfig);
+    res.json(response.data);
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch workouts";
+    console.error("Workouts fetch error:", errorMessage);
+    res.status(error.response?.status || 400).json({ error: errorMessage });
+  }
+});
+
 app.get("/api/workout/:workoutId/metrics", async (req, res) => {
   try {
     const { workoutId } = req.params;
+    const { authenticatedConfig } = req.session;
+
+    if (!authenticatedConfig) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const url = `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`;
-    const response = await axios.get(url, g_authenticated_config);
+    const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
   } catch (error) {
-    res
-      .status(400)
-      .json({ error: error.response?.data || "Failed to fetch metrics" });
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch metrics";
+    console.error("Metrics fetch error:", errorMessage);
+    res.status(error.response?.status || 400).json({ error: errorMessage });
   }
 });
 

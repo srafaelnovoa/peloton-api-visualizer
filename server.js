@@ -5,10 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 app.use(cors());
-let session_id = "";
-let user_id = "";
-let pubsub_session = "";
-let authenticated_options = null;
+let g_authData, g_authenticated_config;
 
 const PELOTON_API_BASE = "https://api.onepeloton.com";
 
@@ -20,13 +17,14 @@ app.post("/api/auth", async (req, res) => {
       username_or_email,
       password,
     });
-    var cookie = response.headers["set-cookie"];
+    let cookie = response.headers["set-cookie"];
     //console.log(cookie);
-    for (var i = 0; i < cookie.length; i++) {
+    for (let i = 0; i < cookie.length; i++) {
       cookie[i] = cookie[i].split(";")[0];
     }
-    authenticated_options = { headers: { Cookie: cookie.join(";") } };
-    res.json(response.data);
+    g_authenticated_config = { headers: { Cookie: cookie.join(";") } };
+    g_authData = response.data;
+    res.json(g_authData);
   } catch (error) {
     res
       .status(400)
@@ -37,10 +35,9 @@ app.post("/api/auth", async (req, res) => {
 // Endpoint to fetch user workouts
 app.get("/api/workouts", async (req, res) => {
   try {
-    const response = await axios.get(
-      `${PELOTON_API_BASE}/api/user/${req.query.userId}/workouts`,
-      authenticated_options
-    );
+    //const apiWorkouts = `${PELOTON_API_BASE}/api/user/${req.query.userId}/workouts`;
+    const url = `${PELOTON_API_BASE}/api/user/${g_authData.user_id}/workouts`;
+    const response = await axios.get(url, g_authenticated_config);
     res.json(response.data);
   } catch (error) {
     res
@@ -53,10 +50,8 @@ app.get("/api/workouts", async (req, res) => {
 app.get("/api/workout/:workoutId/metrics", async (req, res) => {
   try {
     const { workoutId } = req.params;
-    const response = await axios.get(
-      `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`,
-      authenticated_options
-    );
+    const url = `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`;
+    const response = await axios.get(url, g_authenticated_config);
     res.json(response.data);
   } catch (error) {
     res

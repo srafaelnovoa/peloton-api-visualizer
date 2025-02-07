@@ -4,8 +4,17 @@ const cors = require("cors");
 const session = require("express-session"); // Import express-session
 
 const app = express();
+
+const corsOptions = {
+  origin: "http://localhost:3000", // Match frontend URL
+  credentials: true, // Allow credentials
+  methods: "GET,POST", // Allowed request methods
+  allowedHeaders: "Content-Type,Authorization", // Ensure correct headers
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 
 // Configure session middleware
 app.use(
@@ -41,6 +50,8 @@ app.post("/api/auth", async (req, res) => {
     req.session.authenticatedConfig = { headers: { Cookie: cookie } };
     req.session.authData = response.data;
 
+    console.log("Logon success", username_or_email);
+
     res.json(response.data);
   } catch (error) {
     const errorMessage =
@@ -62,6 +73,7 @@ app.get("/api/workouts", async (req, res) => {
     const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
+    console.log("workouts success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
@@ -84,6 +96,7 @@ app.get("/api/workout/:workoutId/metrics", async (req, res) => {
     const url = `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
+    console.log("metrics success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||

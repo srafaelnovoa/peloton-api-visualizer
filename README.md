@@ -4,6 +4,9 @@ This project is a work in progress. It is a web application that integrates with
 
 **Note**: This project is not currently accepting contributions. It is being developed and maintained by the author.
 
+### Known Issues:
+- The graph visualization currently does not display correctly. This issue is being worked on and will be addressed in future updates.
+
 ## Features
 
 - User authentication with Peloton API

@@ -26,7 +26,7 @@ To get started with this project locally, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/srafaelnovoa/peloton-api-integration
+   git clone https://github.com/srafaelnovoa/peloton-api-visualizer
 2. Navigate to the project directory:
    ```bash
    cd peloton-workout-visualizer

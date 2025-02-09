@@ -110,20 +110,33 @@ export default function PelotonDashboard() {
               datasets: [
                 {
                   label: "Heart Rate",
-                  data: metrics.heart_rate,
+                  //data: metrics.heart_rate,
+                  data: metrics.metrics.find(
+                    ({ display_name }) => display_name === "Heart Rate"
+                  ).values,
                   borderColor: "red",
+                  borderWidth: 2,
                   fill: false,
                 },
                 {
                   label: "Speed",
-                  data: metrics.speed,
+                  //data: metrics.speed,
+                  data: metrics.metrics.find(
+                    ({ display_name }) => display_name === "Speed"
+                  ).values,
                   borderColor: "blue",
+                  borderWidth: 2,
                   fill: false,
                 },
                 {
                   label: "Power",
-                  data: metrics.power,
+                  //data: metrics.power,
+                  data: metrics.metrics.find(
+                    ({ display_name }) => display_name === "Output"
+                  ).values,
+
                   borderColor: "green",
+                  borderWidth: 2,
                   fill: false,
                 },
               ],

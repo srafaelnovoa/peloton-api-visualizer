@@ -48,7 +48,21 @@ export default function PelotonDashboard() {
         `http://localhost:5000/api/workout/${workoutId}/metrics`,
         { withCredentials: true } // Required for authentication
       );
-      setMetrics(response.data);
+      let metrics = response.data;
+      const heart_rate = metrics.metrics.find(
+        ({ display_name }) => display_name === "Heart Rate"
+      );
+      const speed = metrics.metrics.find(
+        ({ display_name }) => display_name === "Speed"
+      );
+      const power = metrics.metrics.find(
+        ({ display_name }) => display_name === "Output"
+      );
+      metrics["heart_rate"] = heart_rate ? heart_rate.values : [];
+      metrics["speed"] = speed ? speed.values : [];
+      metrics["power"] = power ? power.values : [];
+
+      setMetrics(metrics);
       setSelectedWorkout(workoutId);
     } catch (error) {
       console.error("Failed to fetch metrics", error);
@@ -106,35 +120,25 @@ export default function PelotonDashboard() {
           <h2>Workout Metrics</h2>
           <Line
             data={{
-              labels: metrics.seconds_since_start,
+              labels: metrics.seconds_since_pedaling_start,
               datasets: [
                 {
                   label: "Heart Rate",
-                  //data: metrics.heart_rate,
-                  data: metrics.metrics.find(
-                    ({ display_name }) => display_name === "Heart Rate"
-                  ).values,
+                  data: metrics.heart_rate,
                   borderColor: "red",
                   borderWidth: 2,
                   fill: false,
                 },
                 {
                   label: "Speed",
-                  //data: metrics.speed,
-                  data: metrics.metrics.find(
-                    ({ display_name }) => display_name === "Speed"
-                  ).values,
+                  data: metrics.speed,
                   borderColor: "blue",
                   borderWidth: 2,
                   fill: false,
                 },
                 {
                   label: "Power",
-                  //data: metrics.power,
-                  data: metrics.metrics.find(
-                    ({ display_name }) => display_name === "Output"
-                  ).values,
-
+                  data: metrics.power,
                   borderColor: "green",
                   borderWidth: 2,
                   fill: false,

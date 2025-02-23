@@ -8,12 +8,15 @@ import {
   LinearScale,
   PointElement,
 } from "chart.js";
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
+import Button from "react-bootstrap/Button";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
 export default function PelotonDashboard() {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [metrics, setMetrics] = useState(null);
@@ -26,6 +29,7 @@ export default function PelotonDashboard() {
         { withCredentials: true } // Ensure credentials are included
       );
       console.log("Login successful", response.data);
+      setUserData(response.data);
     } catch (error) {
       console.error("Login failed", error);
     }
@@ -86,31 +90,39 @@ export default function PelotonDashboard() {
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 mr-2"
         />
-        <button
+        <Button
           onClick={handleLogin}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Login
-        </button>
+        </Button>
       </div>
 
-      <button
+      {userData && (
+        <div className="mt-4">
+          <h2>User Info</h2>
+          <div>username: {userData.username}</div>
+          <img src={userData.image_url} class="img-fluid" alt="..." />
+        </div>
+      )}
+
+      <Button
         onClick={fetchWorkouts}
         className="bg-green-500 text-white px-4 py-2 rounded"
       >
         Fetch Workouts
-      </button>
+      </Button>
 
       <h2 className="mt-4">Workouts</h2>
       <ul>
         {workouts.map((workout) => (
           <li key={workout.id}>
-            <button
+            <Button
               onClick={() => fetchMetrics(workout.id)}
               className="text-blue-500 underline"
             >
               {workout.name || "Workout"}
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

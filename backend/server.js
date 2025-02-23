@@ -50,9 +50,17 @@ app.post("/api/auth", async (req, res) => {
     req.session.authenticatedConfig = { headers: { Cookie: cookie } };
     req.session.authData = response.data;
 
+    // Fetch user details
+    const userResponse = await axios.get(
+      `${PELOTON_API_BASE}/api/user/${response.data.user_id}`,
+      req.session.authenticatedConfig
+    );
+
+    req.session.userData = userResponse.data; // Store user details in session
+
     console.log("Logon success", username_or_email);
 
-    res.json(response.data);
+    res.json(userResponse.data); // Return user data to client
   } catch (error) {
     const errorMessage =
       error.response?.data?.message || error.message || "Authentication failed";

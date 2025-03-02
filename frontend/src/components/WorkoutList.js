@@ -9,7 +9,7 @@ export function WorkoutList({ workouts, onSelectWorkout }) {
           <li key={workout.id}>
             <Button
               onClick={() => onSelectWorkout(workout.id)}
-              className="text-blue-500 underline"
+              className="mb-1 text-blue-500 underline"
             >
               {workout.peloton.ride.title || "Workout"}
             </Button>

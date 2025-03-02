@@ -115,5 +115,28 @@ app.get("/api/workout/:workoutId/metrics", async (req, res) => {
   }
 });
 
+app.get("/api/achievements", async (req, res) => {
+  try {
+    // Access auth data from the session
+    const { authData, authenticatedConfig } = req.session;
+
+    if (!authData || !authenticatedConfig) {
+      return res.status(401).json({ error: "Unauthorized" }); // Handle unauthorized requests
+    }
+
+    const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/achievements`;
+    const response = await axios.get(url, authenticatedConfig);
+    res.json(response.data);
+    //console.log("workouts success", response.data);
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch achievements";
+    console.error("achievements fetch error:", errorMessage);
+    res.status(error.response?.status || 400).json({ error: errorMessage });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

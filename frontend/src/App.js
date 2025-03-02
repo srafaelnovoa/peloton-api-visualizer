@@ -38,6 +38,7 @@ export default function PelotonDashboard() {
         { withCredentials: true }
       );
       setUserData(response.data);
+      fetchWorkouts();
     } catch (error) {
       console.error("Login failed", error);
     }
@@ -82,12 +83,6 @@ export default function PelotonDashboard() {
             <div className="row">
               <div className="col-2">
                 <UserInfo userData={userData} />
-                <Button
-                  onClick={fetchWorkouts}
-                  className="bg-green-500 text-white px-4 py-2 rounded my-3"
-                >
-                  Fetch Workouts
-                </Button>
               </div>
               <div className="col-2">
                 <WorkoutList

@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 export function WorkoutList({ workouts, onSelectWorkout }) {
   return (
     <div>
-      <h2 className="mt-4">Workouts</h2>
+      <h3 className="mt-4 text-center">Cycling</h3>
       <ul>
         {workouts.map((workout) => (
           <li key={workout.id}>

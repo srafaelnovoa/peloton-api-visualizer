@@ -3,8 +3,7 @@ export function UserInfo({ userData }) {
 
   return (
     <div className="mt-4">
-      <h2>User Info</h2>
-      <div>Username: {userData.username}</div>
+      <h3>{userData.username}</h3>
       <img src={userData.image_url} className="img-fluid" alt="User" />
     </div>
   );

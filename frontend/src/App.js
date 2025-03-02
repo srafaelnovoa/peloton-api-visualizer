@@ -27,6 +27,7 @@ function Footer() {
 export default function PelotonDashboard() {
   const [userData, setUserData] = useState(null);
   const [workouts, setWorkouts] = useState([]);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
   const handleLogin = async (usernameOrEmail, password) => {
@@ -63,18 +64,20 @@ export default function PelotonDashboard() {
         `http://localhost:5000/api/workout/${workoutId}/metrics`,
         { withCredentials: true }
       );
-      let metrics = response.data;
-      metrics.heart_rate =
-        metrics.metrics.find(
+      let metricsData = response.data;
+      metricsData.heart_rate =
+        metricsData.metrics.find(
           ({ display_name }) => display_name === "Heart Rate"
         )?.values || [];
-      metrics.speed =
-        metrics.metrics.find(({ display_name }) => display_name === "Speed")
+      metricsData.speed =
+        metricsData.metrics.find(({ display_name }) => display_name === "Speed")
           ?.values || [];
-      metrics.power =
-        metrics.metrics.find(({ display_name }) => display_name === "Output")
-          ?.values || [];
-      setMetrics(metrics);
+      metricsData.power =
+        metricsData.metrics.find(
+          ({ display_name }) => display_name === "Output"
+        )?.values || [];
+      setMetrics(metricsData);
+      setSelectedWorkout(workouts.find(({ id }) => id === workoutId));
     } catch (error) {
       console.error("Failed to fetch metrics", error);
     }
@@ -105,7 +108,10 @@ export default function PelotonDashboard() {
                 />
               </div>
               <div className="col-8">
-                <WorkoutMetricsChart metrics={metrics} />
+                <WorkoutMetricsChart
+                  metrics={metrics}
+                  selectedWorkout={selectedWorkout}
+                />
               </div>
             </div>
           </div>

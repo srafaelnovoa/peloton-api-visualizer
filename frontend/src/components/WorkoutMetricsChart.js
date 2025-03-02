@@ -10,8 +10,11 @@ import {
 // Register required Chart.js components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
-export function WorkoutMetricsChart({ metrics }) {
+export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
   if (!metrics) return null;
+  const workoutDate = new Date(
+    selectedWorkout.created_at * 1000
+  ).toDateString();
 
   const chartData = {
     labels: metrics.seconds_since_pedaling_start,
@@ -42,7 +45,7 @@ export function WorkoutMetricsChart({ metrics }) {
 
   return (
     <div className="mt-4">
-      <h2>Workout Metrics</h2>
+      <h2>Workout Metrics - {workoutDate}</h2>
       <Line data={chartData} />
     </div>
   );

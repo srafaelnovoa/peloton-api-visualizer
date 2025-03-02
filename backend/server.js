@@ -78,10 +78,10 @@ app.get("/api/workouts", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" }); // Handle unauthorized requests
     }
 
-    const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts`;
+    const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts?joins=peloton.ride`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
-    console.log("workouts success", response.data);
+    //console.log("workouts success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||

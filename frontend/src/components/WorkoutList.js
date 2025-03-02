@@ -11,7 +11,7 @@ export function WorkoutList({ workouts, onSelectWorkout }) {
               onClick={() => onSelectWorkout(workout.id)}
               className="text-blue-500 underline"
             >
-              {workout.name || "Workout"}
+              {workout.peloton.ride.title || "Workout"}
             </Button>
           </li>
         ))}

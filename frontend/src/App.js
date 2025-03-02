@@ -47,7 +47,11 @@ export default function PelotonDashboard() {
       const response = await axios.get("http://localhost:5000/api/workouts", {
         withCredentials: true,
       });
-      setWorkouts(response.data.data);
+      let workoutsData = response.data.data;
+      let workoutsCycling = workoutsData.filter(
+        ({ fitness_discipline }) => fitness_discipline === "cycling"
+      );
+      setWorkouts(workoutsCycling);
     } catch (error) {
       console.error("Failed to fetch workouts", error);
     }

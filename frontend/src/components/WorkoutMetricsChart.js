@@ -5,10 +5,19 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
+  Legend,
+  Tooltip,
 } from "chart.js";
 
 // Register required Chart.js components
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+ChartJS.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Legend,
+  Tooltip
+);
 
 export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
   if (!metrics) return null;
@@ -16,37 +25,66 @@ export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
     selectedWorkout.created_at * 1000
   ).toDateString();
 
+  const chartColors = {
+    "Heart Rate": "red",
+    Speed: "blue",
+    Output: "green",
+    Cadence: "gray",
+    Resistance: "orange",
+  };
+
+  const chartDatasets = metrics.metrics.map((val) => ({
+    label: val.display_name,
+    data: val.values,
+    borderColor: chartColors[val.display_name],
+    borderWidth: 2,
+    fill: false,
+  }));
+
   const chartData = {
     labels: metrics.seconds_since_pedaling_start,
-    datasets: [
-      {
-        label: "Heart Rate",
-        data: metrics.heart_rate,
-        borderColor: "red",
-        borderWidth: 2,
-        fill: false,
+    datasets: chartDatasets,
+  };
+
+  const options = {
+    plugins: {
+      legend: {
+        display: true,
       },
-      {
-        label: "Speed",
-        data: metrics.speed,
-        borderColor: "blue",
-        borderWidth: 2,
-        fill: false,
+      tooltip: {
+        enabled: true,
+        //mode: "index",
+        intersect: false,
+        interaction: {
+          mode: "nearest",
+        },
+        backgroundColor: "#9cbba1",
+        callbacks: {
+          // Customizing the tooltip content
+          label: function (tooltipItem) {
+            const datasetLabel = tooltipItem.dataset.label || "";
+            const value = tooltipItem.raw;
+            return `${datasetLabel}: ${value}`;
+          },
+          title: function (tooltipItem) {
+            //const label = (tooltipItem[0].label / 60).toFixed(1);
+            //return `${label || ""} minutes`;
+            const labelMinutes = (tooltipItem[0].label / 60).toFixed(0);
+            const labelSeconds = (tooltipItem[0].label % 60).toFixed(0);
+            //console.log(tooltipItem);
+            return `${labelMinutes || ""} minutes ${
+              labelSeconds || ""
+            } seconds`;
+          },
+        },
       },
-      {
-        label: "Power",
-        data: metrics.power,
-        borderColor: "green",
-        borderWidth: 2,
-        fill: false,
-      },
-    ],
+    },
   };
 
   return (
     <div className="mt-4">
       <h2>Workout Metrics - {workoutDate}</h2>
-      <Line data={chartData} />
+      <Line data={chartData} options={options} />
     </div>
   );
 }

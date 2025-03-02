@@ -64,19 +64,7 @@ export default function PelotonDashboard() {
         `http://localhost:5000/api/workout/${workoutId}/metrics`,
         { withCredentials: true }
       );
-      let metricsData = response.data;
-      metricsData.heart_rate =
-        metricsData.metrics.find(
-          ({ display_name }) => display_name === "Heart Rate"
-        )?.values || [];
-      metricsData.speed =
-        metricsData.metrics.find(({ display_name }) => display_name === "Speed")
-          ?.values || [];
-      metricsData.power =
-        metricsData.metrics.find(
-          ({ display_name }) => display_name === "Output"
-        )?.values || [];
-      setMetrics(metricsData);
+      setMetrics(response.data);
       setSelectedWorkout(workouts.find(({ id }) => id === workoutId));
     } catch (error) {
       console.error("Failed to fetch metrics", error);

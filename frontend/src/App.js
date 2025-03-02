@@ -1,34 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-} from "chart.js";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
+import "bootstrap/dist/css/bootstrap.min.css";
+import LoginForm from "./components/LoginForm";
+import { UserInfo } from "./components/UserInfo";
+import { WorkoutList } from "./components/WorkoutList";
+import { WorkoutMetricsChart } from "./components/WorkoutMetricsChart";
 import Button from "react-bootstrap/Button";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
-
 export default function PelotonDashboard() {
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [userData, setUserData] = useState(null);
   const [workouts, setWorkouts] = useState([]);
-  const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
-  const handleLogin = async () => {
+  const handleLogin = async (usernameOrEmail, password) => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth",
         { username_or_email: usernameOrEmail, password },
-        { withCredentials: true } // Ensure credentials are included
+        { withCredentials: true }
       );
-      console.log("Login successful", response.data);
       setUserData(response.data);
     } catch (error) {
       console.error("Login failed", error);
@@ -38,7 +28,7 @@ export default function PelotonDashboard() {
   const fetchWorkouts = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/workouts", {
-        withCredentials: true, // Required for session persistence
+        withCredentials: true,
       });
       setWorkouts(response.data.data);
     } catch (error) {
@@ -50,24 +40,20 @@ export default function PelotonDashboard() {
     try {
       const response = await axios.get(
         `http://localhost:5000/api/workout/${workoutId}/metrics`,
-        { withCredentials: true } // Required for authentication
+        { withCredentials: true }
       );
       let metrics = response.data;
-      const heart_rate = metrics.metrics.find(
-        ({ display_name }) => display_name === "Heart Rate"
-      );
-      const speed = metrics.metrics.find(
-        ({ display_name }) => display_name === "Speed"
-      );
-      const power = metrics.metrics.find(
-        ({ display_name }) => display_name === "Output"
-      );
-      metrics["heart_rate"] = heart_rate ? heart_rate.values : [];
-      metrics["speed"] = speed ? speed.values : [];
-      metrics["power"] = power ? power.values : [];
-
+      metrics.heart_rate =
+        metrics.metrics.find(
+          ({ display_name }) => display_name === "Heart Rate"
+        )?.values || [];
+      metrics.speed =
+        metrics.metrics.find(({ display_name }) => display_name === "Speed")
+          ?.values || [];
+      metrics.power =
+        metrics.metrics.find(({ display_name }) => display_name === "Output")
+          ?.values || [];
       setMetrics(metrics);
-      setSelectedWorkout(workoutId);
     } catch (error) {
       console.error("Failed to fetch metrics", error);
     }
@@ -75,91 +61,16 @@ export default function PelotonDashboard() {
 
   return (
     <div className="p-4">
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Username or Email"
-          value={usernameOrEmail}
-          onChange={(e) => setUsernameOrEmail(e.target.value)}
-          className="border p-2 mr-2"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 mr-2"
-        />
-        <Button
-          onClick={handleLogin}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Login
-        </Button>
-      </div>
-
-      {userData && (
-        <div className="mt-4">
-          <h2>User Info</h2>
-          <div>username: {userData.username}</div>
-          <img src={userData.image_url} class="img-fluid" alt="..." />
-        </div>
-      )}
-
+      <LoginForm onLogin={handleLogin} />
+      <UserInfo userData={userData} />
       <Button
         onClick={fetchWorkouts}
         className="bg-green-500 text-white px-4 py-2 rounded"
       >
         Fetch Workouts
       </Button>
-
-      <h2 className="mt-4">Workouts</h2>
-      <ul>
-        {workouts.map((workout) => (
-          <li key={workout.id}>
-            <Button
-              onClick={() => fetchMetrics(workout.id)}
-              className="text-blue-500 underline"
-            >
-              {workout.name || "Workout"}
-            </Button>
-          </li>
-        ))}
-      </ul>
-
-      {metrics && (
-        <div className="mt-4">
-          <h2>Workout Metrics</h2>
-          <Line
-            data={{
-              labels: metrics.seconds_since_pedaling_start,
-              datasets: [
-                {
-                  label: "Heart Rate",
-                  data: metrics.heart_rate,
-                  borderColor: "red",
-                  borderWidth: 2,
-                  fill: false,
-                },
-                {
-                  label: "Speed",
-                  data: metrics.speed,
-                  borderColor: "blue",
-                  borderWidth: 2,
-                  fill: false,
-                },
-                {
-                  label: "Power",
-                  data: metrics.power,
-                  borderColor: "green",
-                  borderWidth: 2,
-                  fill: false,
-                },
-              ],
-            }}
-          />
-        </div>
-      )}
+      <WorkoutList workouts={workouts} onSelectWorkout={fetchMetrics} />
+      <WorkoutMetricsChart metrics={metrics} />
     </div>
   );
 }

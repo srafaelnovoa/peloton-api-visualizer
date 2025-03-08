@@ -82,8 +82,10 @@ export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
   };
 
   return (
-    <div className="mt-4">
-      <h2>Workout Metrics - {workoutDate}</h2>
+    <div className="mt-4 container">
+      <h5 className="text-truncate text-center fw-bold fs-7">
+        Workout Metrics - {workoutDate}
+      </h5>
       <Line data={chartData} options={options} />
     </div>
   );

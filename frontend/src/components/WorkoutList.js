@@ -8,9 +8,9 @@ export function WorkoutList({ workouts, onSelectWorkout }) {
       <ul className="list-unstyled">
         {workouts.map((workout) => {
           const title =
-            workout.name === "Lanebreak Ride"
-              ? workout?.ride?.title
-              : workout?.peloton?.ride?.title ?? "Workout";
+            workout?.ride?.title /* LaneBreak rides */ ??
+            workout?.peloton?.ride?.title /* Normal rides */ ??
+            "Workout"; /* All other cases */
           return (
             <li key={workout.id}>
               <Button

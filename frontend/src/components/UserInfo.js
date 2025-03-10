@@ -6,10 +6,7 @@ export function UserInfo({ userData }) {
     .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="mt-4 container">
-      <h5 className="text-truncate text-center fw-bold fs-7">
-        {userData.username}
-      </h5>
+    <>
       <img src={userData.image_url} className="img-fluid" alt="User" />
       <div
         className="mt-3 overflow-auto border p-3"
@@ -33,6 +30,6 @@ export function UserInfo({ userData }) {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

@@ -6,7 +6,6 @@ import LoginForm from "./components/LoginForm";
 import { UserInfo } from "./components/UserInfo";
 import { WorkoutList } from "./components/WorkoutList";
 import { WorkoutMetricsChart } from "./components/WorkoutMetricsChart";
-import Button from "react-bootstrap/Button";
 
 function Header() {
   return (
@@ -66,7 +65,11 @@ export default function PelotonDashboard() {
         { withCredentials: true }
       );
       setMetrics(response.data);
-      setSelectedWorkout(workouts.find(({ id }) => id === workoutId));
+      let workout = workouts.find(({ id }) => id === workoutId);
+      workout["workoutDate"] = new Date(
+        selectedWorkout.created_at * 1000
+      ).toDateString();
+      setSelectedWorkout(workout);
     } catch (error) {
       console.error("Failed to fetch metrics", error);
     }
@@ -82,19 +85,31 @@ export default function PelotonDashboard() {
           <div className="w-100 text-center">
             <div className="row">
               <div className="col-2">
-                <UserInfo userData={userData} />
+                <div className="mt-4 container">
+                  <h5 className="text-truncate text-center fw-bold fs-7">
+                    {userData.username}
+                  </h5>
+                  <UserInfo userData={userData} />
+                </div>
               </div>
               <div className="col-2">
-                <WorkoutList
-                  workouts={workouts}
-                  onSelectWorkout={fetchMetrics}
-                />
+                <div className="mt-4 container">
+                  <h5 className="text-truncate text-center fw-bold fs-7">
+                    Cycling
+                  </h5>
+                  <WorkoutList
+                    workouts={workouts}
+                    onSelectWorkout={fetchMetrics}
+                  />
+                </div>
               </div>
               <div className="col-8">
-                <WorkoutMetricsChart
-                  metrics={metrics}
-                  selectedWorkout={selectedWorkout}
-                />
+                <div className="mt-4 container">
+                  <h5 className="text-truncate text-center fw-bold fs-7">
+                    Workout Metrics - {selectedWorkout.workoutDate}
+                  </h5>
+                  <WorkoutMetricsChart metrics={metrics} />
+                </div>
               </div>
             </div>
           </div>

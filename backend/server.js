@@ -104,7 +104,7 @@ app.get("/api/workout/:workoutId/metrics", async (req, res) => {
     const url = `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
-    console.log("metrics success", response.data);
+    //console.log("metrics success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||

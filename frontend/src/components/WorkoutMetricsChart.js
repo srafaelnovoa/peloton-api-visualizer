@@ -19,11 +19,8 @@ ChartJS.register(
   Tooltip
 );
 
-export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
+export function WorkoutMetricsChart({ metrics }) {
   if (!metrics) return null;
-  const workoutDate = new Date(
-    selectedWorkout.created_at * 1000
-  ).toDateString();
 
   const chartColors = {
     "Heart Rate": "red",
@@ -81,12 +78,5 @@ export function WorkoutMetricsChart({ metrics, selectedWorkout }) {
     },
   };
 
-  return (
-    <div className="mt-4 container">
-      <h5 className="text-truncate text-center fw-bold fs-7">
-        Workout Metrics - {workoutDate}
-      </h5>
-      <Line data={chartData} options={options} />
-    </div>
-  );
+  return <Line data={chartData} options={options} />;
 }

@@ -39,7 +39,7 @@ export default function Dashboard() {
         <div className="w-100 text-center">
           <div className="row">
             <div className="col-md-2">
-              <div className="mt-4 container">
+              <div className="container">
                 <h5 className="text-truncate text-center fw-bold fs-7">
                   {userData.username}
                 </h5>
@@ -47,7 +47,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="col-md-2">
-              <div className="mt-4 container">
+              <div className="container">
                 <h5 className="text-truncate text-center fw-bold fs-7">
                   Cycling
                 </h5>
@@ -55,7 +55,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="col-md-8">
-              <div className="mt-4 container">
+              <div className="container">
                 {selectedWorkout ? (
                   <>
                     <h5 className="text-truncate text-center fw-bold fs-7">

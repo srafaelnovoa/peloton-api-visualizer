@@ -12,24 +12,31 @@ export function UserInfo() {
 
   return (
     <>
-      <img src={userData.image_url} className="rounded img-fluid" alt="User" />
-      <div className="overflow-auto border p-3" style={{ maxHeight: "200px" }}>
-        {workout_counts.map((workout) => (
-          <div key={workout.name} className="row align-items-center">
-            <div className="col-5 px-2">
-              <img
-                src={workout.icon_url}
-                className="w-100"
-                alt="icon"
-                id={`${workout.name}_icon`}
-              />
+      <img
+        src={userData.image_url}
+        className="rounded img-fluid"
+        alt="User"
+        style={{ maxHeight: "200px" }}
+      />
+      <div className="overflow-auto border p-3" style={{ maxHeight: "300px" }}>
+        <div className="d-flex justify-content-center flex-wrap">
+          {workout_counts.map((workout) => (
+            <div key={workout.name} className="align-items-center">
+              <div className="px-1">
+                <img
+                  src={workout.icon_url}
+                  className="w-100"
+                  alt="icon"
+                  id={`${workout.name}_icon`}
+                  style={{ maxWidth: "2em" }}
+                  title={workout.name}
+                />
+              </div>
+
+              <div className="p-0  text-primary">{workout.count}</div>
             </div>
-            <div className="col-7 ps-2">
-              <div className="row p-0 pt-1">{workout.name}</div>
-              <div className="row p-0 pb-1">{workout.count}</div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </>
   );

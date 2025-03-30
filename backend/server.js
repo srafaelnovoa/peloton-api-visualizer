@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -6,7 +7,7 @@ const session = require("express-session"); // Import express-session
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Match frontend URL
+  origin: process.env.FRONTEND_URL, // Load from .env file
   credentials: true, // Allow credentials
   methods: "GET,POST", // Allowed request methods
   allowedHeaders: "Content-Type,Authorization", // Ensure correct headers

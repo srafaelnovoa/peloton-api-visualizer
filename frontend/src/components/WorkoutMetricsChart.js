@@ -8,6 +8,8 @@ import {
   Legend,
   Tooltip,
 } from "chart.js";
+import React from "react";
+import { usePeloton } from "../contexts/PelotonContext";
 
 // Register required Chart.js components
 ChartJS.register(
@@ -19,7 +21,8 @@ ChartJS.register(
   Tooltip
 );
 
-export function WorkoutMetricsChart({ metrics }) {
+export function WorkoutMetricsChart() {
+  const { metrics } = usePeloton();
   if (!metrics) return null;
 
   const chartColors = {

@@ -1,4 +1,9 @@
-export function UserInfo({ userData }) {
+import React from "react";
+import { usePeloton } from "../contexts/PelotonContext";
+
+export function UserInfo() {
+  const { userData } = usePeloton();
+
   if (!userData) return null;
 
   const workout_counts = userData.workout_counts
@@ -20,7 +25,6 @@ export function UserInfo({ userData }) {
                 className="w-100"
                 alt="icon"
                 id={`${workout.name}_icon`}
-                //style={{ maxWidth: "100%", height: "auto" }}
               />
             </div>
             <div className="col-7">

@@ -1,6 +1,9 @@
+import React from "react";
+import { usePeloton } from "../contexts/PelotonContext";
 import Button from "react-bootstrap/Button";
 
-export function WorkoutList({ workouts, onSelectWorkout }) {
+export function WorkoutList() {
+  const { workouts, fetchMetrics } = usePeloton();
   console.log("Workout Data:", workouts);
   if (workouts.length === 0) return null;
   return (
@@ -14,7 +17,7 @@ export function WorkoutList({ workouts, onSelectWorkout }) {
           return (
             <li key={workout.id}>
               <Button
-                onClick={() => onSelectWorkout(workout.id)}
+                onClick={() => fetchMetrics(workout.id)}
                 className="mb-1 btn btn-sm btn-primary w-100"
                 style={{ minWidth: "100px" }}
               >

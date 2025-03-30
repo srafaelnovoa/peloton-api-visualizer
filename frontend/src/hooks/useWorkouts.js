@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export function useWorkouts() {
   const [workouts, setWorkouts] = useState([]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -12,7 +14,7 @@ export function useWorkouts() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get("http://localhost:5000/api/workouts", {
+      const response = await axios.get(`${API_BASE_URL}/api/workouts`, {
         withCredentials: true,
       });
 
@@ -37,7 +39,7 @@ export function useWorkouts() {
       setLoading(true);
       setError(null);
       const response = await axios.get(
-        `http://localhost:5000/api/workout/${workoutId}/metrics`,
+        `${API_BASE_URL}/api/workout/${workoutId}/metrics`,
         { withCredentials: true }
       );
 

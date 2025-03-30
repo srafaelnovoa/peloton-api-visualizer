@@ -12,14 +12,11 @@ export function UserInfo() {
 
   return (
     <>
-      <img src={userData.image_url} className="img-fluid" alt="User" />
-      <div
-        className="mt-3 overflow-auto border p-3"
-        style={{ maxHeight: "300px" }}
-      >
+      <img src={userData.image_url} className="rounded img-fluid" alt="User" />
+      <div className="overflow-auto border p-3" style={{ maxHeight: "200px" }}>
         {workout_counts.map((workout) => (
           <div key={workout.name} className="row align-items-center">
-            <div className="col-5">
+            <div className="col-5 px-2">
               <img
                 src={workout.icon_url}
                 className="w-100"
@@ -27,9 +24,9 @@ export function UserInfo() {
                 id={`${workout.name}_icon`}
               />
             </div>
-            <div className="col-7">
-              <div className="row pt-2">{workout.name}</div>
-              <div className="row pb-2">{workout.count}</div>
+            <div className="col-7 ps-2">
+              <div className="row p-0 pt-1">{workout.name}</div>
+              <div className="row p-0 pb-1">{workout.count}</div>
             </div>
           </div>
         ))}

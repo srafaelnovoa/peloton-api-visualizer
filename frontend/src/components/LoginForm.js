@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Button from "react-bootstrap/Button";
+import Button from "bootstrap/Button";
 
 export default function LoginForm({ onLogin }) {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");

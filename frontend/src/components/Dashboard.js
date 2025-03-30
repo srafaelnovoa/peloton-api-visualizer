@@ -38,24 +38,24 @@ export default function Dashboard() {
       ) : (
         <div className="w-100 text-center">
           <div className="row">
-            <div className="col-md-2">
-              <div className="container">
+            <div className="col-md-2 p-0">
+              <div className="container p-0">
                 <h5 className="text-truncate text-center fw-bold fs-7">
                   {userData.username}
                 </h5>
                 <UserInfo />
               </div>
             </div>
-            <div className="col-md-2">
-              <div className="container">
+            <div className="col-md-2 px-2">
+              <div className="container p-0">
                 <h5 className="text-truncate text-center fw-bold fs-7">
                   Cycling
                 </h5>
                 <WorkoutList />
               </div>
             </div>
-            <div className="col-md-8">
-              <div className="container">
+            <div className="col-md-8 p-0">
+              <div className="container p-0">
                 {selectedWorkout ? (
                   <>
                     <h5 className="text-truncate text-center fw-bold fs-7">

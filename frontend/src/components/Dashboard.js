@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import LoginForm from "./LoginForm";
 import { UserInfo } from "./UserInfo";
 import { WorkoutList } from "./WorkoutList";
@@ -16,14 +16,31 @@ export default function Dashboard() {
     loading,
     error,
   } = usePeloton();
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchWorkouts();
-    }
-  }, [isLoggedIn]);
+    const loadWorkouts = async () => {
+      if (isLoggedIn) {
+        // Set local loading state
+        setIsInitialLoading(true);
 
-  if (loading) {
+        // Add a delay to ensure cookies are properly set
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        try {
+          await fetchWorkouts();
+        } catch (err) {
+          console.error("Error loading workouts after delay:", err);
+        } finally {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    loadWorkouts();
+  }, [isLoggedIn, fetchWorkouts]);
+
+  if (loading || isInitialLoading) {
     return <LoadingSpinner />;
   }
 

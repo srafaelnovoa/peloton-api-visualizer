@@ -25,7 +25,7 @@ const corsOptions = {
   allowedHeaders: "Content-Type,Authorization", // Ensure correct headers
 };
 
-app.use(cors(corsOptions));
+app.use("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -106,6 +106,17 @@ app.get("/api/session-keepalive", (req, res) => {
     res.json({ sessionExists: true });
   } else {
     res.status(401).json({ error: "No session found" });
+  }
+});
+
+app.get("/api/check-auth", (req, res) => {
+  if (req.session && req.session.authData) {
+    res.json({
+      isAuthenticated: true,
+      userId: req.session.authData.user_id,
+    });
+  } else {
+    res.json({ isAuthenticated: false });
   }
 });
 

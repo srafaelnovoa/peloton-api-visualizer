@@ -74,7 +74,7 @@ app.post("/api/auth", async (req, res) => {
 
     req.session.userData = userResponse.data; // Store user details in session
 
-    console.log("Logon success", username_or_email);
+    console.log("Session after login:", req.session);
 
     res.json(userResponse.data); // Return user data to client
   } catch (error) {

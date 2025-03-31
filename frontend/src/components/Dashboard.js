@@ -38,7 +38,8 @@ export default function Dashboard() {
     };
 
     loadWorkouts();
-  }, [isLoggedIn, fetchWorkouts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
 
   if (loading || isInitialLoading) {
     return <LoadingSpinner />;

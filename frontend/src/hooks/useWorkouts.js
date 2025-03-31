@@ -16,10 +16,6 @@ export function useWorkouts() {
       setError(null);
       const response = await axios.get(`${API_BASE_URL}/api/workouts`, {
         withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
       });
 
       const workoutsData = response.data.data;

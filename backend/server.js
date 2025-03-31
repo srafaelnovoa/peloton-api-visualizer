@@ -36,7 +36,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
+      httpOnly: true,
+      sameSite: "None", // Required for cross-origin cookies
       maxAge: 60 * 60 * 1000, // 1 hour, matching Peloton token lifetime
     },
   })
@@ -74,7 +76,8 @@ app.post("/api/auth", async (req, res) => {
 
     req.session.userData = userResponse.data; // Store user details in session
 
-    console.log("Session after login:", req.session);
+    //console.log("Session after login:", req.session);
+    console.log("Logon success", username_or_email);
 
     res.json(userResponse.data); // Return user data to client
   } catch (error) {

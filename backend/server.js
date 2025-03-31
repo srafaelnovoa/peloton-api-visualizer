@@ -53,6 +53,11 @@ function extractCookie(setCookieHeaders) {
   return setCookieHeaders.map((header) => header.split(";")[0]).join(";");
 }
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 app.post("/api/auth", async (req, res) => {
   try {
     const { username_or_email, password } = req.body;
@@ -147,6 +152,7 @@ const protectedRouter = express.Router();
 protectedRouter.use(checkAuth); // Apply auth check to all routes in this router
 
 protectedRouter.get("/workouts", async (req, res) => {
+  console.log("Session in workouts request:", req.session);
   try {
     // Access auth data from the session
     const { authData, authenticatedConfig } = req.session;

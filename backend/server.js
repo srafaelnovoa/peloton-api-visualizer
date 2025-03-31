@@ -6,8 +6,19 @@ const session = require("express-session");
 
 const app = express();
 
+const allowedOrigins = [
+  "https://srafaelnovoa.github.io",
+  "https://srafaelnovoa.github.io/peloton-api-visualizer",
+];
+
 const corsOptions = {
-  origin: "https://srafaelnovoa.github.io/peloton-api-visualizer", // Load from .env file
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true, // Allow credentials
   methods: "GET,POST", // Allowed request methods
   allowedHeaders: "Content-Type,Authorization", // Ensure correct headers

@@ -83,6 +83,12 @@ app.post("/api/auth", async (req, res) => {
 
     req.session.userData = userResponse.data; // Store user details in session
 
+    // 🔹 Explicitly Set-Cookie for Safari
+    res.setHeader(
+      "Set-Cookie",
+      `session_id=${req.sessionID}; Path=/; HttpOnly; Secure; SameSite=None`
+    );
+
     //console.log("Session after login:", req.session);
     console.log("Logon success", username_or_email);
 
@@ -92,6 +98,14 @@ app.post("/api/auth", async (req, res) => {
       error.response?.data?.message || error.message || "Authentication failed";
     console.error("Authentication error:", errorMessage);
     res.status(error.response?.status || 400).json({ error: errorMessage });
+  }
+});
+
+app.get("/api/session-keepalive", (req, res) => {
+  if (req.session) {
+    res.json({ sessionExists: true });
+  } else {
+    res.status(401).json({ error: "No session found" });
   }
 });
 

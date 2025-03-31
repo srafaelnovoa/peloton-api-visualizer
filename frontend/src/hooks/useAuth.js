@@ -20,6 +20,12 @@ export function useAuth() {
       );
 
       setUserData(response.data);
+
+      // 🔹 Trigger a session call to ensure Safari saves cookies
+      await axios.get(`${API_BASE_URL}/api/session-keepalive`, {
+        withCredentials: true,
+      });
+
       setLoading(false);
       return true;
     } catch (error) {

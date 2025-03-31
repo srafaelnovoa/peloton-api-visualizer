@@ -12,13 +12,7 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: "https://srafaelnovoa.github.io",
   credentials: true, // Allow credentials
   methods: "GET,POST", // Allowed request methods
   allowedHeaders: "Content-Type,Authorization", // Ensure correct headers
@@ -35,6 +29,7 @@ app.use(
       process.env.SESSION_SECRET || "37bc1d12-ccdb-4eeb-8086-1a4fd42bced5", //Session Key
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       secure: true,
       httpOnly: true,

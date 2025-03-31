@@ -147,7 +147,8 @@ const protectedRouter = express.Router();
 protectedRouter.use(checkAuth); // Apply auth check to all routes in this router
 
 protectedRouter.get("/workouts", async (req, res) => {
-  console.log("Session in workouts request:", req.session);
+  console.log("Session in workouts request");
+  //console.log("Session in workouts request:", req.session);
   try {
     // Access auth data from the session
     const { authData, authenticatedConfig } = req.session;

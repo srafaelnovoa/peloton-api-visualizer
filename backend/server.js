@@ -12,7 +12,14 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: "https://srafaelnovoa.github.io",
+  //origin: "https://srafaelnovoa.github.io",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true, // Allow credentials
   methods: "GET,POST", // Allowed request methods
   allowedHeaders: "Content-Type,Authorization", // Ensure correct headers

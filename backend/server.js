@@ -102,6 +102,7 @@ app.post("/api/auth", async (req, res) => {
 });
 
 app.get("/api/session-keepalive", (req, res) => {
+  console.log("session-keepalive");
   if (req.session) {
     res.json({ sessionExists: true });
   } else {
@@ -110,6 +111,7 @@ app.get("/api/session-keepalive", (req, res) => {
 });
 
 app.get("/api/check-auth", (req, res) => {
+  console.log("check-auth");
   if (req.session && req.session.authData) {
     res.json({
       isAuthenticated: true,
@@ -122,6 +124,7 @@ app.get("/api/check-auth", (req, res) => {
 
 // Add a route to get user data
 app.get("/api/user-data", (req, res) => {
+  console.log("user-data");
   if (req.session && req.session.userData) {
     res.json(req.session.userData);
   } else if (req.session && req.session.authData) {
@@ -137,6 +140,7 @@ app.get("/api/user-data", (req, res) => {
 
 // Middleware to check auth and handle expired tokens
 const checkAuth = async (req, res, next) => {
+  console.log("checkAuth");
   if (!req.session.authData || !req.session.authenticatedConfig) {
     return res.status(401).json({ error: "Unauthorized", requiresLogin: true });
   }

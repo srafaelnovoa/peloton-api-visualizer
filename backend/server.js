@@ -142,7 +142,11 @@ app.get("/api/user-data", (req, res) => {
 const checkAuth = async (req, res, next) => {
   console.log("checkAuth");
   if (!req.session.authData || !req.session.authenticatedConfig) {
-    console.log("checkAuth Unauthorized");
+    console.log(
+      "checkAuth Unauthorized",
+      req.session.authData,
+      req.session.authenticatedConfig
+    );
     return res.status(401).json({ error: "Unauthorized", requiresLogin: true });
   }
 

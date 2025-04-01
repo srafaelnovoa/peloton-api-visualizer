@@ -3,8 +3,12 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const session = require("express-session");
+const jwt = require("jsonwebtoken"); // Add this package (npm install jsonwebtoken)
 
 const app = express();
+
+// JWT secret key - store this in your .env file in production
+const JWT_SECRET = process.env.JWT_SECRET || "KHneI36FNQ9XDr4S";
 
 const allowedOrigins = [
   "https://srafaelnovoa.github.io",
@@ -12,7 +16,6 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  //origin: "https://srafaelnovoa.github.io",
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -20,45 +23,65 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, // Allow credentials
-  methods: "GET,POST", // Allowed request methods
-  allowedHeaders: "Content-Type,Authorization", // Ensure correct headers
+  credentials: true,
+  methods: "GET,POST",
+  allowedHeaders: "Content-Type,Authorization",
 };
 
 app.use("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Enhanced CORS headers
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  next();
+});
+
 // Configure session middleware
 app.use(
   session({
     secret:
-      process.env.SESSION_SECRET || "37bc1d12-ccdb-4eeb-8086-1a4fd42bced5", //Session Key
+      process.env.SESSION_SECRET || "37bc1d12-ccdb-4eeb-8086-1a4fd42bced5",
     resave: false,
     saveUninitialized: false,
     proxy: true,
     cookie: {
       secure: true,
       httpOnly: true,
-      sameSite: "None", // Required for cross-origin cookies
-      maxAge: 60 * 60 * 1000, // 1 hour, matching Peloton token lifetime
+      sameSite: "none", // lowercase for consistency
+      maxAge: 60 * 60 * 1000,
     },
   })
 );
 
 const PELOTON_API_BASE =
-  process.env.PELOTON_API_BASE || "https://api.onepeloton.com"; // Use env variable
+  process.env.PELOTON_API_BASE || "https://api.onepeloton.com";
 
-// Helper function to extract cookie (same as before)
+// Helper function to extract cookie
 function extractCookie(setCookieHeaders) {
   if (!setCookieHeaders) return "";
   return setCookieHeaders.map((header) => header.split(";")[0]).join(";");
 }
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-});
+// Generate JWT token
+function generateToken(userData, authConfig) {
+  return jwt.sign(
+    {
+      userId: userData.user_id,
+      username: userData.username,
+      // Don't include sensitive data in the token
+    },
+    JWT_SECRET,
+    { expiresIn: "1h" } // Match Peloton token lifetime
+  );
+}
 
 app.post("/api/auth", async (req, res) => {
   try {
@@ -70,10 +93,13 @@ app.post("/api/auth", async (req, res) => {
 
     const cookie = extractCookie(response.headers["set-cookie"]);
 
-    // Store auth data in the session instead of globals!
+    // Store auth data in the session
     req.session.authenticatedConfig = { headers: { Cookie: cookie } };
     req.session.authData = response.data;
-    req.session.authTimestamp = Date.now(); // Add timestamp
+    req.session.authTimestamp = Date.now();
+
+    // Store credentials for refresh (if you want to keep this functionality)
+    req.session.refreshCredentials = { username_or_email, password };
 
     // Fetch user details
     const userResponse = await axios.get(
@@ -81,18 +107,24 @@ app.post("/api/auth", async (req, res) => {
       req.session.authenticatedConfig
     );
 
-    req.session.userData = userResponse.data; // Store user details in session
+    req.session.userData = userResponse.data;
 
-    // 🔹 Explicitly Set-Cookie for Safari
+    // Generate JWT token
+    const token = generateToken(response.data, req.session.authenticatedConfig);
+
+    // Explicitly Set-Cookie for Safari
     res.setHeader(
       "Set-Cookie",
       `session_id=${req.sessionID}; Path=/; HttpOnly; Secure; SameSite=None`
     );
 
-    //console.log("Session after login:", req.session);
     console.log("Logon success", username_or_email);
 
-    res.json(userResponse.data); // Return user data to client
+    // Return both user data and token
+    res.json({
+      ...userResponse.data,
+      token: token,
+    });
   } catch (error) {
     const errorMessage =
       error.response?.data?.message || error.message || "Authentication failed";
@@ -112,6 +144,27 @@ app.get("/api/session-keepalive", (req, res) => {
 
 app.get("/api/check-auth", (req, res) => {
   console.log("check-auth");
+
+  // Check for JWT token in Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, JWT_SECRET);
+      return res.json({
+        isAuthenticated: true,
+        userId: decoded.userId,
+        username: decoded.username,
+      });
+    } catch (err) {
+      console.log("Invalid token:", err.message);
+      // Continue to check session if token invalid
+    }
+  }
+
+  // Fallback to session check
   if (req.session && req.session.authData) {
     res.json({
       isAuthenticated: true,
@@ -122,13 +175,42 @@ app.get("/api/check-auth", (req, res) => {
   }
 });
 
-// Add a route to get user data
 app.get("/api/user-data", (req, res) => {
   console.log("user-data");
+
+  // Check for JWT token in Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, JWT_SECRET);
+
+      // If we have session data for this user, return it
+      if (
+        req.session &&
+        req.session.userData &&
+        req.session.userData.id === decoded.userId
+      ) {
+        return res.json(req.session.userData);
+      }
+
+      // Otherwise return basic user info from token
+      return res.json({
+        userId: decoded.userId,
+        username: decoded.username,
+      });
+    } catch (err) {
+      console.log("Invalid token for user-data:", err.message);
+      // Continue to check session if token invalid
+    }
+  }
+
+  // Fallback to session check
   if (req.session && req.session.userData) {
     res.json(req.session.userData);
   } else if (req.session && req.session.authData) {
-    // If we have auth data but no user data, return minimal information
     res.json({
       userId: req.session.authData.user_id,
       username: req.session.authData.username || "User",
@@ -141,6 +223,39 @@ app.get("/api/user-data", (req, res) => {
 // Middleware to check auth and handle expired tokens
 const checkAuth = async (req, res, next) => {
   console.log("checkAuth");
+
+  // Check for JWT token in Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, JWT_SECRET);
+
+      // If token is valid but we don't have session data, attempt to use token data
+      if (!req.session.authData || !req.session.authenticatedConfig) {
+        // This is a bare minimum to allow the request to proceed
+        // Actual Peloton API calls might still fail without the session cookies
+        req.session.authData = {
+          user_id: decoded.userId,
+          username: decoded.username,
+        };
+
+        // Without the actual Peloton cookie this might not work,
+        // but we'll let the specific API handler deal with that
+        console.log("Using token authentication without session data");
+      }
+
+      next();
+      return;
+    } catch (err) {
+      console.log("Invalid token in checkAuth:", err.message);
+      // Continue to check session if token invalid
+    }
+  }
+
+  // Fallback to session check
   if (!req.session.authData || !req.session.authenticatedConfig) {
     console.log(
       "checkAuth Unauthorized",
@@ -150,8 +265,8 @@ const checkAuth = async (req, res, next) => {
     return res.status(401).json({ error: "Unauthorized", requiresLogin: true });
   }
 
-  // Check for token expiration
-  const tokenExpiryBuffer = 5 * 60 * 1000; // 5 minutes
+  // Token refresh logic (same as before)
+  const tokenExpiryBuffer = 5 * 60 * 1000;
   const sessionStartTime = req.session.authTimestamp || 0;
   const timeElapsed = Date.now() - sessionStartTime;
 
@@ -178,7 +293,6 @@ const checkAuth = async (req, res, next) => {
       console.log("Token refreshed for", username_or_email);
     } catch (error) {
       console.log("checkAuth error", error);
-      // If refresh fails, clear session
       req.session.destroy((err) => {
         if (err) console.error("Session destruction error:", err);
       });
@@ -187,7 +301,6 @@ const checkAuth = async (req, res, next) => {
         .json({ error: "Session expired", requiresLogin: true });
     }
   } else if (timeElapsed > 60 * 60 * 1000 - tokenExpiryBuffer) {
-    // Token expired, no refresh credentials
     req.session.destroy((err) => {
       if (err) console.error("Session destruction error:", err);
     });
@@ -196,17 +309,17 @@ const checkAuth = async (req, res, next) => {
       .status(401)
       .json({ error: "Session expired", requiresLogin: true });
   }
+
   console.log("checkAuth next");
   next();
 };
 
 const protectedRouter = express.Router();
 
-protectedRouter.use(checkAuth); // Apply auth check to all routes in this router
+protectedRouter.use(checkAuth);
 
 protectedRouter.get("/workouts", async (req, res) => {
-  console.log("Session in workouts request");
-  //console.log("Session in workouts request:", req.session);
+  console.log("Workouts request received");
   try {
     // Access auth data from the session
     const { authData, authenticatedConfig } = req.session;
@@ -223,6 +336,7 @@ protectedRouter.get("/workouts", async (req, res) => {
   }
 });
 
+// Other protectedRouter routes remain the same
 protectedRouter.get("/workout/:workoutId/metrics", async (req, res) => {
   try {
     const { workoutId } = req.params;
@@ -231,7 +345,6 @@ protectedRouter.get("/workout/:workoutId/metrics", async (req, res) => {
     const url = `${PELOTON_API_BASE}/api/workout/${workoutId}/performance_graph`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
-    //console.log("metrics success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
@@ -244,13 +357,11 @@ protectedRouter.get("/workout/:workoutId/metrics", async (req, res) => {
 
 protectedRouter.get("/achievements", async (req, res) => {
   try {
-    // Access auth data from the session
     const { authData, authenticatedConfig } = req.session;
 
     const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/achievements`;
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
-    //console.log("workouts success", response.data);
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
@@ -260,6 +371,7 @@ protectedRouter.get("/achievements", async (req, res) => {
     res.status(error.response?.status || 400).json({ error: errorMessage });
   }
 });
+
 app.use("/api", protectedRouter);
 
 const PORT = process.env.PORT || 5000;

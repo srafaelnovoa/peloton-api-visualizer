@@ -7,8 +7,14 @@ const PelotonContext = createContext();
 export const usePeloton = () => useContext(PelotonContext);
 
 export function PelotonDashboardProvider({ children }) {
-  const { userData, isLoggedIn, handleLogin, loginError, checkAuthStatus } =
-    useAuth();
+  const {
+    userData,
+    isLoggedIn,
+    handleLogin,
+    loginError,
+    checkAuthStatus,
+    getAuthHeaders,
+  } = useAuth();
   const {
     workouts,
     selectedWorkout,
@@ -18,7 +24,7 @@ export function PelotonDashboardProvider({ children }) {
     setSelectedWorkout,
     loading: workoutsLoading,
     error: workoutsError,
-  } = useWorkouts();
+  } = useWorkouts(checkAuthStatus, getAuthHeaders);
 
   // Error state for the entire context
   const [error, setError] = useState(null);

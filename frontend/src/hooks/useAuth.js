@@ -3,6 +3,24 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+// Helper to get token from localStorage
+const getToken = () => localStorage.getItem("auth_token");
+
+// Helper to set token in localStorage
+const setToken = (token) => {
+  if (token) {
+    localStorage.setItem("auth_token", token);
+  } else {
+    localStorage.removeItem("auth_token");
+  }
+};
+
+// Helper to add token to requests
+const addAuthHeader = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export function useAuth() {
   const [userData, setUserData] = useState(null);
   const [loginError, setLoginError] = useState(null);
@@ -11,8 +29,13 @@ export function useAuth() {
 
   const checkAuthStatus = async () => {
     try {
+      const token = getToken();
+
       const response = await axios.get(`${API_BASE_URL}/api/check-auth`, {
         withCredentials: true,
+        headers: {
+          ...addAuthHeader(),
+        },
       });
 
       if (response.data.isAuthenticated) {
@@ -22,20 +45,25 @@ export function useAuth() {
         if (response.data.userId && !userData) {
           try {
             const userResponse = await axios.get(
-              `${API_BASE_URL}/api/user-data`, // You'll need to add this endpoint to your backend
-              { withCredentials: true }
+              `${API_BASE_URL}/api/user-data`,
+              {
+                withCredentials: true,
+                headers: {
+                  ...addAuthHeader(),
+                },
+              }
             );
             setUserData(userResponse.data);
           } catch (userError) {
             console.error("Failed to fetch user data:", userError);
-            // If we can't get user data, we're not really authenticated
             setIsAuthenticated(false);
           }
         }
       } else {
-        // Make sure we clear both states if not authenticated
+        // If server reports not authenticated, clear everything
         setIsAuthenticated(false);
         setUserData(null);
+        setToken(null); // Clear the token
       }
     } catch (error) {
       console.error("Auth check failed", error);
@@ -46,7 +74,10 @@ export function useAuth() {
 
   // Check auth status when the component mounts
   useEffect(() => {
-    checkAuthStatus();
+    const token = getToken();
+    if (token) {
+      checkAuthStatus();
+    }
   }, []);
 
   const handleLogin = async (usernameOrEmail, password) => {
@@ -60,39 +91,60 @@ export function useAuth() {
         { withCredentials: true }
       );
 
-      // Only set both of these if we have valid user data
-      if (response.data && response.data.username) {
-        setUserData(response.data);
+      // Check if we received a token and user data
+      if (response.data && response.data.username && response.data.token) {
+        // Save the token
+        setToken(response.data.token);
+
+        // Save user data
+        const userDataWithoutToken = { ...response.data };
+        delete userDataWithoutToken.token; // Don't store token in state
+
+        setUserData(userDataWithoutToken);
         setIsAuthenticated(true);
+
+        // Trigger a session call to ensure Safari saves cookies
+        await axios.get(`${API_BASE_URL}/api/session-keepalive`, {
+          withCredentials: true,
+          headers: {
+            ...addAuthHeader(),
+          },
+        });
+
+        // Verify authentication status
+        await axios.get(`${API_BASE_URL}/api/check-auth`, {
+          withCredentials: true,
+          headers: {
+            ...addAuthHeader(),
+          },
+        });
+
+        setLoading(false);
+        return true;
       } else {
-        // If response doesn't have expected user data, consider it a failure
-        throw new Error("Invalid user data received");
+        throw new Error("Invalid user data or missing token");
       }
-
-      // 🔹 Trigger a session call to ensure Safari saves cookies
-      await axios.get(`${API_BASE_URL}/api/session-keepalive`, {
-        withCredentials: true,
-      });
-
-      await axios.get(`${API_BASE_URL}/api/check-auth`, {
-        withCredentials: true,
-      });
-
-      setLoading(false);
-      return true;
     } catch (error) {
       console.error("Login failed", error);
       setLoginError(
-        error.response?.data?.message || "Login failed. Please try again."
+        error.response?.data?.error || "Login failed. Please try again."
       );
 
-      // Ensure authentication states are reset on failure
+      // Reset auth state
       setIsAuthenticated(false);
       setUserData(null);
+      setToken(null); // Clear token on failed login
 
       setLoading(false);
       return false;
     }
+  };
+
+  const handleLogout = () => {
+    // Clear all auth data
+    setIsAuthenticated(false);
+    setUserData(null);
+    setToken(null);
   };
 
   // Create a combined authentication check
@@ -100,10 +152,12 @@ export function useAuth() {
 
   return {
     userData,
-    isLoggedIn: isValidAuth, // Use the combined check
+    isLoggedIn: isValidAuth,
     handleLogin,
+    handleLogout, // Added logout function
     loginError,
     loading,
     checkAuthStatus,
+    getAuthHeaders: addAuthHeader, // Expose for other hooks to use
   };
 }

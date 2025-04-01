@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-export function useWorkouts(checkAuthStatus) {
+export function useWorkouts(checkAuthStatus, getAuthHeaders) {
   const [workouts, setWorkouts] = useState([]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [metrics, setMetrics] = useState(null);
@@ -21,8 +21,14 @@ export function useWorkouts(checkAuthStatus) {
         await checkAuthStatus();
       }
 
+      // Use the auth headers from useAuth
+      const authHeaders = getAuthHeaders ? getAuthHeaders() : {};
+
       const response = await axios.get(`${API_BASE_URL}/api/workouts`, {
         withCredentials: true,
+        headers: {
+          ...authHeaders,
+        },
       });
 
       const workoutsData = response.data.data;
@@ -50,9 +56,18 @@ export function useWorkouts(checkAuthStatus) {
     try {
       setLoading(true);
       setError(null);
+
+      // Use the auth headers from useAuth
+      const authHeaders = getAuthHeaders ? getAuthHeaders() : {};
+
       const response = await axios.get(
         `${API_BASE_URL}/api/workout/${workoutId}/metrics`,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            ...authHeaders,
+          },
+        }
       );
 
       setMetrics(response.data);

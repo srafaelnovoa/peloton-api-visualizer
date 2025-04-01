@@ -17,10 +17,30 @@ export function useAuth() {
 
       if (response.data.isAuthenticated) {
         setIsAuthenticated(true);
-        // Optionally fetch user data if needed
+
+        // If we have a userId but no userData, fetch the user data
+        if (response.data.userId && !userData) {
+          try {
+            const userResponse = await axios.get(
+              `${API_BASE_URL}/api/user-data`, // You'll need to add this endpoint to your backend
+              { withCredentials: true }
+            );
+            setUserData(userResponse.data);
+          } catch (userError) {
+            console.error("Failed to fetch user data:", userError);
+            // If we can't get user data, we're not really authenticated
+            setIsAuthenticated(false);
+          }
+        }
+      } else {
+        // Make sure we clear both states if not authenticated
+        setIsAuthenticated(false);
+        setUserData(null);
       }
     } catch (error) {
       console.error("Auth check failed", error);
+      setIsAuthenticated(false);
+      setUserData(null);
     }
   };
 
@@ -40,8 +60,14 @@ export function useAuth() {
         { withCredentials: true }
       );
 
-      setUserData(response.data);
-      setIsAuthenticated(true);
+      // Only set both of these if we have valid user data
+      if (response.data && response.data.username) {
+        setUserData(response.data);
+        setIsAuthenticated(true);
+      } else {
+        // If response doesn't have expected user data, consider it a failure
+        throw new Error("Invalid user data received");
+      }
 
       // 🔹 Trigger a session call to ensure Safari saves cookies
       await axios.get(`${API_BASE_URL}/api/session-keepalive`, {
@@ -59,14 +85,22 @@ export function useAuth() {
       setLoginError(
         error.response?.data?.message || "Login failed. Please try again."
       );
+
+      // Ensure authentication states are reset on failure
+      setIsAuthenticated(false);
+      setUserData(null);
+
       setLoading(false);
       return false;
     }
   };
 
+  // Create a combined authentication check
+  const isValidAuth = isAuthenticated && userData !== null;
+
   return {
     userData,
-    isLoggedIn: isAuthenticated,
+    isLoggedIn: isValidAuth, // Use the combined check
     handleLogin,
     loginError,
     loading,

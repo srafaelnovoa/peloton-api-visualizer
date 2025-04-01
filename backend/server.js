@@ -120,6 +120,21 @@ app.get("/api/check-auth", (req, res) => {
   }
 });
 
+// Add a route to get user data
+app.get("/api/user-data", (req, res) => {
+  if (req.session && req.session.userData) {
+    res.json(req.session.userData);
+  } else if (req.session && req.session.authData) {
+    // If we have auth data but no user data, return minimal information
+    res.json({
+      userId: req.session.authData.user_id,
+      username: req.session.authData.username || "User",
+    });
+  } else {
+    res.status(401).json({ error: "Not authenticated" });
+  }
+});
+
 // Middleware to check auth and handle expired tokens
 const checkAuth = async (req, res, next) => {
   if (!req.session.authData || !req.session.authenticatedConfig) {

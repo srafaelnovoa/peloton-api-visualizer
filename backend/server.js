@@ -172,6 +172,7 @@ const checkAuth = async (req, res, next) => {
 
       console.log("Token refreshed for", username_or_email);
     } catch (error) {
+      console.log("checkAuth error", error);
       // If refresh fails, clear session
       req.session.destroy((err) => {
         if (err) console.error("Session destruction error:", err);
@@ -189,7 +190,7 @@ const checkAuth = async (req, res, next) => {
       .status(401)
       .json({ error: "Session expired", requiresLogin: true });
   }
-
+  console.log("checkAuth next");
   next();
 };
 

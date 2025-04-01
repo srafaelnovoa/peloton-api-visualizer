@@ -142,6 +142,7 @@ app.get("/api/user-data", (req, res) => {
 const checkAuth = async (req, res, next) => {
   console.log("checkAuth");
   if (!req.session.authData || !req.session.authenticatedConfig) {
+    console.log("checkAuth Unauthorized");
     return res.status(401).json({ error: "Unauthorized", requiresLogin: true });
   }
 
@@ -186,6 +187,7 @@ const checkAuth = async (req, res, next) => {
     req.session.destroy((err) => {
       if (err) console.error("Session destruction error:", err);
     });
+    console.log("checkAuth Session expired");
     return res
       .status(401)
       .json({ error: "Session expired", requiresLogin: true });

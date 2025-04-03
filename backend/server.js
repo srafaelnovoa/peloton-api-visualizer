@@ -198,7 +198,7 @@ app.get("/api/user-data", (req, res) => {
       }
 
       // Otherwise return basic user info from token
-      console("return basic user info", decoded?.userId, decoded?.username);
+      console.log("return basic user info", decoded?.userId, decoded?.username);
       return res.json({
         userId: decoded.userId,
         username: decoded.username,

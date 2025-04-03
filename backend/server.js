@@ -193,12 +193,12 @@ app.get("/api/user-data", (req, res) => {
         req.session.userData &&
         req.session.userData.id === decoded.userId
       ) {
-        console.log("req.session.userData.id", req.session.userData.id);
+        console.log("req.session.userData.id", req?.session?.userData?.id);
         return res.json(req.session.userData);
       }
 
       // Otherwise return basic user info from token
-      console("return basic user info", decoded.userId, decoded.username);
+      console("return basic user info", decoded?.userId, decoded?.username);
       return res.json({
         userId: decoded.userId,
         username: decoded.username,

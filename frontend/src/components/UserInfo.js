@@ -4,7 +4,7 @@ import { usePeloton } from "../contexts/PelotonContext";
 export function UserInfo() {
   const { userData } = usePeloton();
 
-  if (!userData) return null;
+  if (!userData || !userData.workout_counts) return null;
 
   const workout_counts = userData.workout_counts
     .filter((val) => val.count > 0)

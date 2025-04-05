@@ -76,7 +76,9 @@ export function useAuth() {
   useEffect(() => {
     const token = getToken();
     if (token) {
+      setLoading(true);
       checkAuthStatus();
+      setLoading(false);
     }
   }, []);
 

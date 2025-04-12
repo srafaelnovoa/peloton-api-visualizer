@@ -324,8 +324,12 @@ protectedRouter.get("/workouts", async (req, res) => {
   console.log("Workouts request received");
   try {
     // Access auth data from the session
+    console.log("req.session", req.session);
     const { authData, authenticatedConfig } = req.session;
+    console.log("authData", authData);
+    console.log("authenticatedConfig", authenticatedConfig);
     const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts?joins=peloton.ride`;
+    console.log("url", url);
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
   } catch (error) {

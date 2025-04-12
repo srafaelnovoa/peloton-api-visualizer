@@ -76,6 +76,7 @@ function generateToken(userData, username, authConfig) {
     {
       userId: userData.user_id,
       username: username,
+      authConfig: authConfig,
       // Don't include sensitive data in the token
     },
     JWT_SECRET,
@@ -252,6 +253,7 @@ const checkAuth = async (req, res, next) => {
           user_id: decoded.userId,
           username: decoded.username,
         };
+        req.session.authenticatedConfig = decoded.authConfig;
         console.log("req.session.authData", req.session.authData);
 
         // Without the actual Peloton cookie this might not work,

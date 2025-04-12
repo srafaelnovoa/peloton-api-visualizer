@@ -71,11 +71,11 @@ function extractCookie(setCookieHeaders) {
 }
 
 // Generate JWT token
-function generateToken(userData, authConfig) {
+function generateToken(userData, username, authConfig) {
   return jwt.sign(
     {
       userId: userData.user_id,
-      username: userData.username,
+      username: username,
       // Don't include sensitive data in the token
     },
     JWT_SECRET,
@@ -110,7 +110,11 @@ app.post("/api/auth", async (req, res) => {
     req.session.userData = userResponse.data;
 
     // Generate JWT token
-    const token = generateToken(response.data, req.session.authenticatedConfig);
+    const token = generateToken(
+      response.data,
+      username_or_email,
+      req.session.authenticatedConfig
+    );
 
     // Explicitly Set-Cookie for Safari
     res.setHeader(

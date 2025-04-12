@@ -234,7 +234,12 @@ const checkAuth = async (req, res, next) => {
     try {
       // Verify token
       const decoded = jwt.verify(token, JWT_SECRET);
-
+      console.log("decoded", decoded);
+      console.log("req.session.authData", req.session.authData);
+      console.log(
+        "req.session.authenticatedConfig",
+        req.session.authenticatedConfig
+      );
       // If token is valid but we don't have session data, attempt to use token data
       if (!req.session.authData || !req.session.authenticatedConfig) {
         // This is a bare minimum to allow the request to proceed
@@ -243,6 +248,7 @@ const checkAuth = async (req, res, next) => {
           user_id: decoded.userId,
           username: decoded.username,
         };
+        console.log("req.session.authData", req.session.authData);
 
         // Without the actual Peloton cookie this might not work,
         // but we'll let the specific API handler deal with that
@@ -324,7 +330,6 @@ protectedRouter.get("/workouts", async (req, res) => {
   console.log("Workouts request received");
   try {
     // Access auth data from the session
-    console.log("req.session", req.session);
     const { authData, authenticatedConfig } = req.session;
     console.log("authData", authData);
     console.log("authenticatedConfig", authenticatedConfig);

@@ -181,7 +181,7 @@ app.get("/api/check-auth", (req, res) => {
 });
 
 app.get("/api/user-data", (req, res) => {
-  console.log("user-data");
+  //console.log("user-data");
 
   // Check for JWT token in Authorization header
   const authHeader = req.headers.authorization;
@@ -198,12 +198,12 @@ app.get("/api/user-data", (req, res) => {
         req.session.userData &&
         req.session.userData.id === decoded.userId
       ) {
-        console.log("req.session.userData.id", req?.session?.userData?.id);
+        //console.log("req.session.userData.id", req?.session?.userData?.id);
         return res.json(req.session.userData);
       }
 
       // Otherwise return basic user info from token
-      console.log("return basic user info", decoded?.userId, decoded?.username);
+      //console.log("return basic user info", decoded?.userId, decoded?.username);
       return res.json({
         userId: decoded.userId,
         username: decoded.username,
@@ -239,12 +239,12 @@ const checkAuth = async (req, res, next) => {
     try {
       // Verify token
       const decoded = jwt.verify(token, JWT_SECRET);
-      console.log("decoded", decoded);
-      console.log("req.session.authData", req.session.authData);
-      console.log(
+      //console.log("decoded", decoded);
+      //console.log("req.session.authData", req.session.authData);
+      /*console.log(
         "req.session.authenticatedConfig",
         req.session.authenticatedConfig
-      );
+      );*/
       // If token is valid but we don't have session data, attempt to use token data
       if (!req.session.authData || !req.session.authenticatedConfig) {
         // This is a bare minimum to allow the request to proceed
@@ -254,7 +254,7 @@ const checkAuth = async (req, res, next) => {
           username: decoded.username,
         };
         req.session.authenticatedConfig = decoded.authConfig;
-        console.log("req.session.authData", req.session.authData);
+        //console.log("req.session.authData", req.session.authData);
 
         // Without the actual Peloton cookie this might not work,
         // but we'll let the specific API handler deal with that
@@ -271,11 +271,11 @@ const checkAuth = async (req, res, next) => {
 
   // Fallback to session check
   if (!req.session.authData || !req.session.authenticatedConfig) {
-    console.log(
+    /*console.log(
       "checkAuth Unauthorized",
       req.session.authData,
       req.session.authenticatedConfig
-    );
+    );*/
     return res.status(401).json({ error: "Unauthorized", requiresLogin: true });
   }
 
@@ -337,10 +337,10 @@ protectedRouter.get("/workouts", async (req, res) => {
   try {
     // Access auth data from the session
     const { authData, authenticatedConfig } = req.session;
-    console.log("authData", authData);
-    console.log("authenticatedConfig", authenticatedConfig);
+    //console.log("authData", authData);
+    //console.log("authenticatedConfig", authenticatedConfig);
     const url = `${PELOTON_API_BASE}/api/user/${authData.user_id}/workouts?joins=peloton.ride`;
-    console.log("url", url);
+    //console.log("url", url);
     const response = await axios.get(url, authenticatedConfig);
     res.json(response.data);
   } catch (error) {
